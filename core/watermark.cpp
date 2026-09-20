@@ -25,37 +25,37 @@ QImage applyWatermark(const QImage &source, const WatermarkSettings &s)
     double yPos;
 
     switch(s.hAlign){
-        case HAlign::Left:
-            xPos = s.marginFraction * result.width();
-            break;
+    case HAlign::Left:
+        xPos = s.marginFraction * result.width();
+        break;
 
-        case HAlign::Center:
-            xPos = (result.width() / 2.0) - (textWidth / 2.0);
-            break;
+    case HAlign::Center:
+        xPos = (result.width() / 2.0) - (textWidth / 2.0);
+        break;
 
-        case HAlign::Right:
-            xPos = result.width() - textWidth - s.marginFraction * result.width();
-            break;
-        default:
-            xPos = (result.width() / 2.0) - (textWidth / 2.0);
-            break;
+    case HAlign::Right:
+        xPos = result.width() - textWidth - s.marginFraction * result.width();
+        break;
+    default:
+        xPos = (result.width() / 2.0) - (textWidth / 2.0);
+        break;
     }
 
     switch(s.vAlign){
-        case VAlign::Bottom:
-            yPos = result.height() - s.marginFraction * result.width() - fm.descent();
-            break;
+    case VAlign::Bottom:
+        yPos = result.height() - s.marginFraction * result.width() - fm.descent();
+        break;
 
-        case VAlign::Center:
-            yPos = result.height() / 2.0 + (fm.ascent() - fm.descent()) / 2.0;
-            break;
+    case VAlign::Center:
+        yPos = result.height() / 2.0 + (fm.ascent() - fm.descent()) / 2.0;
+        break;
 
-        case VAlign::Top:
-            yPos = s.marginFraction * result.width() + fm.ascent();
-            break;
-        default:
-            yPos = result.height() / 2.0 + (fm.ascent() - fm.descent()) / 2.0;
-            break;
+    case VAlign::Top:
+        yPos = s.marginFraction * result.width() + fm.ascent();
+        break;
+    default:
+        yPos = result.height() / 2.0 + (fm.ascent() - fm.descent()) / 2.0;
+        break;
     }
 
     const QPointF pos(xPos, yPos);

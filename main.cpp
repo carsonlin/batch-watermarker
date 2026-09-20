@@ -1,5 +1,4 @@
 #include "mainwindow.h"
-#include "watermark.h"
 
 #include <QApplication>
 #include <QDebug>
@@ -14,10 +13,7 @@ int main(int argc, char *argv[])
     if (img.isNull())
         qDebug() << "Could not load the image. Check the path.";
 
-    WatermarkSettings s;
-    s.text = "My Watermark";
-
-    w.showImage(applyWatermark(img, s));
+    w.setImage(img);
     w.show();
     return a.exec();
 }
