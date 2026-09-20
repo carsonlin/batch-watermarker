@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.19)
 project(batch-watermarker LANGUAGES CXX)
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Widgets)
 
 qt_standard_project_setup()
 
@@ -10,11 +10,16 @@ qt_add_executable(batch-watermarker
     main.cpp
     mainwindow.cpp
     mainwindow.h
+    core/watermark.cpp
+    core/watermark.h
 )
+
+target_include_directories(batch-watermarker PRIVATE core)
 
 target_link_libraries(batch-watermarker
     PRIVATE
         Qt::Core
+        Qt::Gui
         Qt::Widgets
 )
 

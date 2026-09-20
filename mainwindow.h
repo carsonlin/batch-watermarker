@@ -1,14 +1,17 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#pragma once
 
+#include <QImage>
 #include <QMainWindow>
+
+class QLabel;
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-
 public:
     explicit MainWindow(QWidget *parent = nullptr);
-    ~MainWindow() override;
+    void showImage(const QImage &image);
+
+private:
+    QLabel *m_label;
 };
-#endif // MAINWINDOW_H
