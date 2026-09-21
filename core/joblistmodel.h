@@ -36,6 +36,8 @@ public:
     void addFiles(const QStringList &paths);
     QString pathAt(int row) const;
     void setStatus(int row, JobStatus status);
+    void removeAt(int row);
+    void clear();
 
 private:
     QList<Job> m_jobs;

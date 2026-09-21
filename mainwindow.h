@@ -23,12 +23,18 @@ private:
     void onAddImages();                   // slot for the "Add Images" button
     void updatePreview();
     void onSelectionChanged(const QModelIndex &current);
+    void onRemove();
+    void onClear();
+    void clearPreview();
+    void showRow(int row);
 
     QLabel *m_label = nullptr;            // the preview
     QLineEdit *m_textEdit = nullptr;
     QComboBox *m_hAlignBox = nullptr;
     QComboBox *m_vAlignBox = nullptr;
     QPushButton *m_addButton = nullptr;
+    QPushButton *m_removeButton = nullptr;
+    QPushButton *m_clearButton = nullptr;
 
     JobListModel *m_model = nullptr;
     QTableView *m_table = nullptr;
@@ -38,4 +44,6 @@ private:
     QSlider * m_opacitySlider = nullptr;
     QSlider * m_sizeSlider = nullptr;
     QSlider * m_marginSlider = nullptr;
+
+
 };

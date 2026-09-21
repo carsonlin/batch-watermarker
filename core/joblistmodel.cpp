@@ -87,3 +87,21 @@ void JobListModel::setStatus(int row, JobStatus status)
     m_jobs[row].status = status;
     emit dataChanged(index(row, 1), index(row, 1));
 }
+
+void JobListModel::removeAt(int row){
+    if(row < 0 || row >= m_jobs.size()){
+        return;
+    }
+    beginRemoveRows(QModelIndex(), row, row);
+    m_jobs.removeAt(row);
+    endRemoveRows();
+}
+
+
+void JobListModel::clear(){
+    beginResetModel();
+
+    m_jobs.clear();
+
+    endResetModel();
+}

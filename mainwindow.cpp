@@ -27,8 +27,10 @@ MainWindow::MainWindow(QWidget *parent)
     auto *topRow = new QHBoxLayout;
     m_addButton = new QPushButton("Add Images", this);
     topRow->addWidget(m_addButton);
-    topRow->addWidget(new QPushButton("Remove", this));
-    topRow->addWidget(new QPushButton("Clear", this));
+    m_removeButton = new QPushButton("Remove", this);
+    topRow->addWidget(m_removeButton);
+    m_clearButton = new QPushButton("Clear", this);
+    topRow->addWidget(m_clearButton);
     topRow->addStretch();
     outer->addLayout(topRow);
 
@@ -105,6 +107,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_hAlignBox, &QComboBox::currentIndexChanged, this, &MainWindow::updatePreview);
     connect(m_vAlignBox, &QComboBox::currentIndexChanged, this, &MainWindow::updatePreview);
     connect(m_addButton, &QPushButton::clicked, this, &MainWindow::onAddImages);
+    connect(m_removeButton, &QPushButton::clicked, this, &MainWindow::onRemove);
+    connect(m_clearButton, &QPushButton::clicked, this, &MainWindow::onClear);
     connect(m_table->selectionModel(), &QItemSelectionModel::currentRowChanged, this, &MainWindow::onSelectionChanged);
     connect(m_opacitySlider, &QSlider::valueChanged, this, &MainWindow::updatePreview);
     connect(m_sizeSlider,    &QSlider::valueChanged, this, &MainWindow::updatePreview);
@@ -119,14 +123,12 @@ void MainWindow::setImage(const QImage &image)
 
 void MainWindow::onSelectionChanged(const QModelIndex &current)
 {
-    if (!current.isValid())
+    if (!current.isValid()){
+        clearPreview();
         return;
+    }
 
-    const QImage image = loadImage(m_model->pathAt(current.row()));
-    if (image.isNull())
-        return;
-
-    setImage(image);
+    showRow(current.row());
 }
 
 void MainWindow::onAddImages()
@@ -158,4 +160,43 @@ void MainWindow::updatePreview()
     const QPixmap pixmap = QPixmap::fromImage(result);
     m_label->setPixmap(pixmap.scaled(800, 600, Qt::KeepAspectRatio,
                                      Qt::SmoothTransformation));
+}
+
+void MainWindow::onRemove()
+{
+    const QModelIndex index = m_table->currentIndex();
+    if (!index.isValid())
+        return;
+    const int row = index.row();
+    m_model->removeAt(row);
+
+    if (m_model->rowCount() == 0){
+        clearPreview();
+        return;
+    }
+
+    const int newRow = qMin(row, m_model->rowCount() - 1);
+    m_table->setCurrentIndex(m_model->index(newRow, 0));
+    showRow(newRow);
+}
+
+void MainWindow::onClear()
+{
+    m_model->clear();
+    clearPreview();
+}
+
+void MainWindow::clearPreview()
+{
+    m_original = QImage();
+    m_label->clear();
+}
+
+void MainWindow::showRow(int row)
+{
+    const QImage image = loadImage(m_model->pathAt(row));
+    if (image.isNull())
+        return;
+
+    setImage(image);
 }
