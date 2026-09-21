@@ -12,6 +12,7 @@ qt_add_executable(batch-watermarker
     mainwindow.h
     core/watermark.cpp
     core/watermark.h
+    core/joblistmodel.h core/joblistmodel.cpp
 )
 
 target_include_directories(batch-watermarker PRIVATE core)

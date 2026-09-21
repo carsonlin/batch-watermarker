@@ -2,6 +2,7 @@
 #include <QFont>
 #include <QFontMetrics>
 #include <QPainter>
+#include <QImageReader>
 
 QImage applyWatermark(const QImage &source, const WatermarkSettings &s)
 {
@@ -16,7 +17,7 @@ QImage applyWatermark(const QImage &source, const WatermarkSettings &s)
     QFont font;
     font.setPixelSize(qMax(1, int(result.width() * s.sizeFraction)));
     painter.setFont(font);
-    painter.setPen(Qt::white);
+    painter.setPen(Qt::black);
 
     const QFontMetrics fm(font);
     const double textWidth = fm.horizontalAdvance(s.text);
@@ -62,4 +63,11 @@ QImage applyWatermark(const QImage &source, const WatermarkSettings &s)
     painter.drawText(pos, s.text);
 
     return result;
+}
+
+QImage loadImage(const QString &path)
+{
+    QImageReader reader(path);
+    reader.setAutoTransform(true);
+    return reader.read();
 }
