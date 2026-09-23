@@ -92,12 +92,19 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Bottom row: output folder, process button, progress
     auto *bottomRow = new QHBoxLayout;
-    auto *outputEdit = new QLineEdit(this);
-    outputEdit->setPlaceholderText("Output folder");
-    bottomRow->addWidget(outputEdit, 1);
-    bottomRow->addWidget(new QPushButton("Browse", this));
-    bottomRow->addWidget(new QPushButton("Process All", this));
-    bottomRow->addWidget(new QProgressBar(this));
+
+    m_browseButton = new QPushButton("Choose Output Folder", this);
+    bottomRow->addWidget(m_browseButton);
+
+    m_outputLabel = new QLabel("No folder selected", this);
+    bottomRow->addWidget(m_outputLabel, 1);
+
+    m_processButton = new QPushButton("Process All", this);
+    bottomRow->addWidget(m_processButton);
+
+    m_progressBar = new QProgressBar(this);
+    bottomRow->addWidget(m_progressBar);
+
     outer->addLayout(bottomRow);
 
     setCentralWidget(central);
@@ -113,6 +120,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_opacitySlider, &QSlider::valueChanged, this, &MainWindow::updatePreview);
     connect(m_sizeSlider,    &QSlider::valueChanged, this, &MainWindow::updatePreview);
     connect(m_marginSlider,  &QSlider::valueChanged, this, &MainWindow::updatePreview);
+    connect(m_browseButton, &QPushButton::clicked, this, &MainWindow::onBrowseFolder);
 }
 
 void MainWindow::setImage(const QImage &image)
@@ -142,6 +150,19 @@ void MainWindow::onAddImages()
 
     m_model->addFiles(paths);
     m_table->setCurrentIndex(m_model->index(m_model->rowCount() - 1, 0));
+}
+
+void MainWindow::onBrowseFolder()
+{
+    const QString folder = QFileDialog::getExistingDirectory(
+        this, "Select output folder", QString());
+
+    if (folder.isEmpty())
+        return;
+
+    m_outputFolder = folder;
+    m_outputLabel->setText(folder);
+
 }
 
 void MainWindow::updatePreview()

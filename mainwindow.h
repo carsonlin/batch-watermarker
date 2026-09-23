@@ -9,7 +9,7 @@ class QComboBox;
 class QLabel;
 class QLineEdit;
 class QPushButton;
-
+class QProgressBar;
 class QTableView;
 
 class MainWindow : public QMainWindow
@@ -27,6 +27,7 @@ private:
     void onClear();
     void clearPreview();
     void showRow(int row);
+    void onBrowseFolder();
 
     QLabel *m_label = nullptr;            // the preview
     QLineEdit *m_textEdit = nullptr;
@@ -35,6 +36,11 @@ private:
     QPushButton *m_addButton = nullptr;
     QPushButton *m_removeButton = nullptr;
     QPushButton *m_clearButton = nullptr;
+    QLabel *m_outputLabel = nullptr;
+    QString m_outputFolder;
+    QPushButton *m_browseButton = nullptr;
+    QPushButton *m_processButton = nullptr;
+    QProgressBar *m_progressBar = nullptr;
 
     JobListModel *m_model = nullptr;
     QTableView *m_table = nullptr;
@@ -44,6 +50,7 @@ private:
     QSlider * m_opacitySlider = nullptr;
     QSlider * m_sizeSlider = nullptr;
     QSlider * m_marginSlider = nullptr;
+
 
 
 };
