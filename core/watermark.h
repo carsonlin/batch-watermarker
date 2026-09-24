@@ -17,7 +17,6 @@ struct WatermarkSettings {
     VAlign vAlign = VAlign::Bottom; // vertical anchor
 };
 
-// Returns a new image with the watermark drawn on it. Does not modify source.
 QImage applyWatermark(const QImage &source, const WatermarkSettings &settings);
 
 QImage loadImage(const QString &path);

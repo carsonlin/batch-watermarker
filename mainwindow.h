@@ -46,6 +46,7 @@ private:
     QTableView *m_table = nullptr;
 
     QImage m_original;
+    QImage m_previewSource;
     WatermarkSettings m_settings;
     QSlider * m_opacitySlider = nullptr;
     QSlider * m_sizeSlider = nullptr;

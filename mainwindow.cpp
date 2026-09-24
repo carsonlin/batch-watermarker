@@ -16,6 +16,8 @@
 #include <QTableView>
 #include <QItemSelectionModel>
 #include <QSlider>
+#include <QElapsedTimer>
+#include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), m_label(new QLabel(this))
@@ -61,13 +63,13 @@ MainWindow::MainWindow(QWidget *parent)
     form->addRow("Text:", m_textEdit);
 
     m_hAlignBox = new QComboBox(this);
-    m_hAlignBox->addItems({"Left", "Center", "Right"});   // same order as enum HAlign
-    m_hAlignBox->setCurrentIndex(2);                      // Right
+    m_hAlignBox->addItems({"Left", "Center", "Right"});
+    m_hAlignBox->setCurrentIndex(2);
     form->addRow("Horizontal:", m_hAlignBox);
 
     m_vAlignBox = new QComboBox(this);
-    m_vAlignBox->addItems({"Top", "Center", "Bottom"});   // same order as enum VAlign
-    m_vAlignBox->setCurrentIndex(2);                      // Bottom
+    m_vAlignBox->addItems({"Top", "Center", "Bottom"});
+    m_vAlignBox->setCurrentIndex(2);
     form->addRow("Vertical:", m_vAlignBox);
 
     m_opacitySlider = new QSlider(Qt::Horizontal, this);
@@ -126,6 +128,7 @@ MainWindow::MainWindow(QWidget *parent)
 void MainWindow::setImage(const QImage &image)
 {
     m_original = image;
+    m_previewSource = image.scaledToWidth(800, Qt::SmoothTransformation);
     updatePreview();
 }
 
@@ -210,6 +213,7 @@ void MainWindow::onClear()
 void MainWindow::clearPreview()
 {
     m_original = QImage();
+    m_previewSource = QImage();
     m_label->clear();
 }
 
