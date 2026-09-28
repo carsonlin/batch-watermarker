@@ -110,22 +110,3 @@ You may need to pass a generator (for example `-G "MinGW Makefiles"`) to match y
 2. Click a row to preview it. Change the text, alignment, opacity, size, or margin and the preview updates immediately.
 3. Click **Choose Output Folder** and pick where the results should go. Use a different folder from your originals.
 4. Click **Process All**. Each row's status updates as its image finishes, and a summary appears at the end.
-
-## Known limitations
-
-- Watermark text is always white, and there is no font picker.
-- Only text watermarks are supported (no logo images).
-- Output files are saved with Qt's default JPEG quality, and other metadata such as EXIF camera and GPS data is not carried over.
-- Output names include the row number, so running the same batch twice into the same folder overwrites the earlier results.
-- Positions are relative to each image, so a watermark placed for a landscape photo lands in a different spot on a portrait photo.
-- Tested on Windows only.
-- No automated tests yet.
-
-## Possible future work
-
-- Color, font, and outline or shadow options, so the text stays readable on any background
-- Logo (image) watermarks
-- Configurable JPEG quality and output format
-- Safer output naming that checks for existing files
-- Cancel button for a running batch
-- Unit tests for the watermark function and the job model
