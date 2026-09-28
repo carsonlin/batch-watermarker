@@ -5,6 +5,9 @@
 #include <QMainWindow>
 #include "joblistmodel.h"
 #include "QSlider.h"
+#include <QElapsedTimer>
+#include <QFutureWatcher>
+
 class QComboBox;
 class QLabel;
 class QLineEdit;
@@ -30,6 +33,8 @@ private:
     void onBrowseFolder();
     void readSettings();
     void onProcessAll();
+    void onResultReady(int index);
+    void onBatchFinished();
 
     QLabel *m_label = nullptr;            // the preview
     QLineEdit *m_textEdit = nullptr;
@@ -53,7 +58,8 @@ private:
     QSlider * m_opacitySlider = nullptr;
     QSlider * m_sizeSlider = nullptr;
     QSlider * m_marginSlider = nullptr;
-
-
+    int m_succeeded = 0;
+    QElapsedTimer m_timer;
+    QFutureWatcher<bool> m_watcher;
 
 };

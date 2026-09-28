@@ -16,11 +16,13 @@
 #include <QTableView>
 #include <QItemSelectionModel>
 #include <QSlider>
-#include <QElapsedTimer>
 #include <QDebug>
 #include <QDir>
 #include <QFileInfo>
 #include <QMessageBox>
+#include <QFutureWatcher>
+#include <QElapsedTimer>
+#include <QtConcurrent>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), m_label(new QLabel(this))
@@ -131,6 +133,36 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_model, &QAbstractItemModel::rowsInserted, this, resetProgress);
     connect(m_model, &QAbstractItemModel::rowsRemoved,  this, resetProgress);
     connect(m_model, &QAbstractItemModel::modelReset,   this, resetProgress);
+    connect(&m_watcher, &QFutureWatcher<bool>::resultReadyAt,this, &MainWindow::onResultReady);
+    connect(&m_watcher, &QFutureWatcher<bool>::finished,this, &MainWindow::onBatchFinished);
+}
+
+void MainWindow::onResultReady(int index){
+    if(m_watcher.resultAt(index)){
+        m_succeeded++;
+        m_model->setStatus(index, JobStatus::Done);
+    }else{
+        m_model->setStatus(index, JobStatus::Failed);
+    }
+    m_progressBar->setValue(m_progressBar->value() + 1);
+}
+
+
+
+void MainWindow::onBatchFinished()
+{
+    m_addButton->setEnabled(true);
+    m_removeButton->setEnabled(true);
+    m_clearButton->setEnabled(true);
+    m_processButton->setEnabled(true);
+
+    const int total = m_model->rowCount();
+    qDebug() << "Batch of" << total << "took" << m_timer.elapsed() << "ms";
+
+    QMessageBox::information(this, "Finished",
+                             QString("%1 of %2 images processed.")
+                                 .arg(m_succeeded)
+                                 .arg(total));
 }
 
 void MainWindow::onProcessAll()
@@ -148,10 +180,9 @@ void MainWindow::onProcessAll()
     m_progressBar->setRange(0, total);
     m_progressBar->setValue(0);
 
-    QElapsedTimer timer;
-    timer.start();
-    int succeeded = 0;
 
+
+    QList<ProcessJob> jobList;
     for (int row = 0; row < total; ++row) {
         m_model->setStatus(row, JobStatus::Processing);
 
@@ -164,16 +195,20 @@ void MainWindow::onProcessAll()
                                     .arg(info.suffix());
         const QString outputPath = QDir(m_outputFolder).filePath(newName);
 
-        bool processed = processImage(ProcessJob{sourcePath, m_settings, outputPath});
-        m_progressBar->setValue(row + 1);
+        jobList.append(ProcessJob{sourcePath, m_settings, outputPath});
 
-        m_model->setStatus(row, processed ? JobStatus::Done : JobStatus::Failed);
-        if (processed) ++succeeded;
     }
 
-    qDebug() << "Batch of" << total << "took" << timer.elapsed() << "ms";
-    QMessageBox::information(this, "Finished",
-                             QString("%1 of %2 images processed.").arg(succeeded).arg(total));
+    m_succeeded = 0;
+    m_timer.start();
+
+    m_addButton->setEnabled(false);
+    m_removeButton->setEnabled(false);
+    m_clearButton->setEnabled(false);
+    m_processButton->setEnabled(false);
+
+
+    m_watcher.setFuture(QtConcurrent::mapped(jobList, processImage));
 }
 
 void MainWindow::setImage(const QImage &image)
