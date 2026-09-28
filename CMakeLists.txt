@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.19)
 project(batch-watermarker LANGUAGES CXX)
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Widgets)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Widgets Concurrent)
 
 qt_standard_project_setup()
 
@@ -22,6 +22,7 @@ target_link_libraries(batch-watermarker
         Qt::Core
         Qt::Gui
         Qt::Widgets
+        Qt::Concurrent
 )
 
 install(TARGETS batch-watermarker

@@ -156,14 +156,7 @@ void MainWindow::onProcessAll()
         m_model->setStatus(row, JobStatus::Processing);
 
         const QString sourcePath = m_model->pathAt(row);
-        const QImage image = loadImage(sourcePath);
-        if (image.isNull()) {
-            m_model->setStatus(row, JobStatus::Failed);
-            m_progressBar->setValue(row + 1);
-            continue;                       // skip this file, keep going
-        }
 
-        const QImage result = applyWatermark(image, m_settings);
         const QFileInfo info(sourcePath);
         const QString newName = QString("%1_watermarked_%2.%3")
                                     .arg(info.completeBaseName())
@@ -171,13 +164,11 @@ void MainWindow::onProcessAll()
                                     .arg(info.suffix());
         const QString outputPath = QDir(m_outputFolder).filePath(newName);
 
-        if (result.save(outputPath)) {
-            m_model->setStatus(row, JobStatus::Done);
-            ++succeeded;
-        } else {
-            m_model->setStatus(row, JobStatus::Failed);
-        }
+        bool processed = processImage(ProcessJob{sourcePath, m_settings, outputPath});
         m_progressBar->setValue(row + 1);
+
+        m_model->setStatus(row, processed ? JobStatus::Done : JobStatus::Failed);
+        if (processed) ++succeeded;
     }
 
     qDebug() << "Batch of" << total << "took" << timer.elapsed() << "ms";

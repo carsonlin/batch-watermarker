@@ -3,6 +3,9 @@
 #include <QFontMetrics>
 #include <QPainter>
 #include <QImageReader>
+#include <QDir>
+#include <QFileInfo>
+#include <QMessageBox>
 
 QImage applyWatermark(const QImage &source, const WatermarkSettings &s)
 {
@@ -70,4 +73,18 @@ QImage loadImage(const QString &path)
     QImageReader reader(path);
     reader.setAutoTransform(true);
     return reader.read();
+}
+
+bool processImage(const ProcessJob &job){
+
+    QImage source = loadImage(job.srcPath);
+    if(source.isNull()){
+        return false;
+    }
+
+    QImage watermarked = applyWatermark(source, job.settings);
+
+
+    return watermarked.save(job.outputPath);
+
 }

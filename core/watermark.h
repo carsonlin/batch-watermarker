@@ -17,6 +17,14 @@ struct WatermarkSettings {
     VAlign vAlign = VAlign::Bottom; // vertical anchor
 };
 
+struct ProcessJob{
+    QString srcPath;
+    WatermarkSettings settings;
+    QString outputPath;
+};
+
 QImage applyWatermark(const QImage &source, const WatermarkSettings &settings);
 
 QImage loadImage(const QString &path);
+
+bool processImage(const ProcessJob &job);
