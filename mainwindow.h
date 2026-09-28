@@ -28,6 +28,8 @@ private:
     void clearPreview();
     void showRow(int row);
     void onBrowseFolder();
+    void readSettings();
+    void onProcessAll();
 
     QLabel *m_label = nullptr;            // the preview
     QLineEdit *m_textEdit = nullptr;
