@@ -40,7 +40,7 @@ Test set: 100 images at 4032 x 3024. Machine: 8-core CPU with 16 logical process
 | 1 | 18,331 / 18,524 | 18,428 | 1.00x |
 | 2 | 9,084 / 9,167 | 9,126 | 2.02x |
 | 4 | 4,850 / 4,819 | 4,835 | 3.81x |
-| 8 | 3,057 / 2,799 / 2,908 | 2,921 | 6.31x |
+| 8 | 2,799 / 2,908 | 2,921 | 6.31x |
 | 16 | 2,312 / 2,234 | 2,273 | 8.11x |
 
 A plain single-threaded loop (no thread pool) averaged about **18.0 s** for the same 100 images. With the default pool size (16 threads here), the batch takes about **2.3 s**, roughly **7.9x faster**.
