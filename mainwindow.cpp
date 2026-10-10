@@ -1,5 +1,4 @@
 #include "mainwindow.h"
-
 #include <QComboBox>
 #include <QFormLayout>
 #include <QHBoxLayout>
@@ -16,12 +15,10 @@
 #include <QTableView>
 #include <QItemSelectionModel>
 #include <QSlider>
-#include <QDebug>
 #include <QDir>
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QFutureWatcher>
-#include <QElapsedTimer>
 #include <QtConcurrent>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -30,7 +27,16 @@ MainWindow::MainWindow(QWidget *parent)
     auto *central = new QWidget(this);
     auto *outer = new QVBoxLayout(central);
 
-    // Top row: action buttons
+    setupTopRow(outer);
+    setupMiddleRow(outer);
+    setupBottomRow(outer);
+
+    setCentralWidget(central);
+    setupConnections();
+}
+
+void MainWindow::setupTopRow(QVBoxLayout *outer)
+{
     auto *topRow = new QHBoxLayout;
     m_addButton = new QPushButton("Add Images", this);
     topRow->addWidget(m_addButton);
@@ -40,10 +46,13 @@ MainWindow::MainWindow(QWidget *parent)
     topRow->addWidget(m_clearButton);
     topRow->addStretch();
     outer->addLayout(topRow);
+}
 
-    // Middle row: file table | preview | settings
+void MainWindow::setupMiddleRow(QVBoxLayout *outer)
+{
     auto *middleRow = new QHBoxLayout;
 
+    // Set up model/view
     m_model = new JobListModel(this);
     m_table = new QTableView(this);
     m_table->setModel(m_model);
@@ -54,15 +63,25 @@ MainWindow::MainWindow(QWidget *parent)
     m_table->setFixedWidth(260);
     middleRow->addWidget(m_table);
 
+    // Set up preview
     m_label->setAlignment(Qt::AlignCenter);
     m_label->setMinimumSize(400, 300);
     m_label->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     middleRow->addWidget(m_label, 1);
 
-    // Settings panel
+    //Set up settings panel
     auto *panel = new QWidget(this);
     auto *form = new QFormLayout(panel);
+    setupSettingsPanel(form);
+    panel->setFixedWidth(220);
+    middleRow->addWidget(panel);
 
+    outer->addLayout(middleRow, 1);
+}
+
+
+void MainWindow::setupSettingsPanel(QFormLayout *form)
+{
     m_textEdit = new QLineEdit(this);
     m_textEdit->setText("My Watermark");
     form->addRow("Text:", m_textEdit);
@@ -77,12 +96,15 @@ MainWindow::MainWindow(QWidget *parent)
     m_vAlignBox->setCurrentIndex(2);
     form->addRow("Vertical:", m_vAlignBox);
 
+    //Int only sliders so converted to 0.0-1.0 fractions in readSettings().
     m_opacitySlider = new QSlider(Qt::Horizontal, this);
     m_opacitySlider->setRange(0, 100);
     m_opacitySlider->setValue(100);
+
     m_sizeSlider = new QSlider(Qt::Horizontal, this);
     m_sizeSlider->setRange(0, 20);
     m_sizeSlider->setValue(5);
+
     m_marginSlider = new QSlider(Qt::Horizontal, this);
     m_marginSlider->setRange(0, 10);
     m_marginSlider->setValue(3);
@@ -90,14 +112,10 @@ MainWindow::MainWindow(QWidget *parent)
     form->addRow("Opacity:", m_opacitySlider);
     form->addRow("Size:", m_sizeSlider);
     form->addRow("Margin:", m_marginSlider);
+}
 
-
-    panel->setFixedWidth(220);
-    middleRow->addWidget(panel);
-
-    outer->addLayout(middleRow, 1);
-
-    // Bottom row: output folder, process button, progress
+void MainWindow::setupBottomRow(QVBoxLayout *outer)
+{
     auto *bottomRow = new QHBoxLayout;
 
     m_browseButton = new QPushButton("Choose Output Folder", this);
@@ -113,31 +131,39 @@ MainWindow::MainWindow(QWidget *parent)
     bottomRow->addWidget(m_progressBar);
 
     outer->addLayout(bottomRow);
+}
 
-    setCentralWidget(central);
-
-    // Any change in a control refreshes the preview
+void MainWindow::setupConnections()
+{
+    // Any settings change re-renders the downscaled preview
     connect(m_textEdit, &QLineEdit::textChanged, this, &MainWindow::updatePreview);
     connect(m_hAlignBox, &QComboBox::currentIndexChanged, this, &MainWindow::updatePreview);
     connect(m_vAlignBox, &QComboBox::currentIndexChanged, this, &MainWindow::updatePreview);
+    connect(m_opacitySlider, &QSlider::valueChanged, this, &MainWindow::updatePreview);
+    connect(m_sizeSlider, &QSlider::valueChanged, this, &MainWindow::updatePreview);
+    connect(m_marginSlider, &QSlider::valueChanged, this, &MainWindow::updatePreview);
+
     connect(m_addButton, &QPushButton::clicked, this, &MainWindow::onAddImages);
     connect(m_removeButton, &QPushButton::clicked, this, &MainWindow::onRemove);
     connect(m_clearButton, &QPushButton::clicked, this, &MainWindow::onClear);
-    connect(m_table->selectionModel(), &QItemSelectionModel::currentRowChanged, this, &MainWindow::onSelectionChanged);
-    connect(m_opacitySlider, &QSlider::valueChanged, this, &MainWindow::updatePreview);
-    connect(m_sizeSlider,    &QSlider::valueChanged, this, &MainWindow::updatePreview);
-    connect(m_marginSlider,  &QSlider::valueChanged, this, &MainWindow::updatePreview);
     connect(m_browseButton, &QPushButton::clicked, this, &MainWindow::onBrowseFolder);
     connect(m_processButton, &QPushButton::clicked, this, &MainWindow::onProcessAll);
+
+    connect(m_table->selectionModel(), &QItemSelectionModel::currentRowChanged,this, &MainWindow::onSelectionChanged);
+
+    // Progress bar reflects one batch run, any edit to the file list will reset progress
     auto resetProgress = [this]() { m_progressBar->setValue(0); };
     connect(m_model, &QAbstractItemModel::rowsInserted, this, resetProgress);
-    connect(m_model, &QAbstractItemModel::rowsRemoved,  this, resetProgress);
-    connect(m_model, &QAbstractItemModel::modelReset,   this, resetProgress);
-    connect(&m_watcher, &QFutureWatcher<bool>::resultReadyAt,this, &MainWindow::onResultReady);
-    connect(&m_watcher, &QFutureWatcher<bool>::finished,this, &MainWindow::onBatchFinished);
+    connect(m_model, &QAbstractItemModel::rowsRemoved, this, resetProgress);
+    connect(m_model, &QAbstractItemModel::modelReset, this, resetProgress);
+
+    // QFutureWatcher delivers on the GUI thread
+    connect(&m_watcher, &QFutureWatcher<bool>::resultReadyAt, this, &MainWindow::onResultReady);
+    connect(&m_watcher, &QFutureWatcher<bool>::finished, this, &MainWindow::onBatchFinished);
 }
 
 void MainWindow::onResultReady(int index){
+    //Add/Remove/Clear are disabled while a batch runs to ensure index is correct
     if(m_watcher.resultAt(index)){
         m_succeeded++;
         m_model->setStatus(index, JobStatus::Done);
@@ -155,14 +181,6 @@ void MainWindow::onBatchFinished()
     m_removeButton->setEnabled(true);
     m_clearButton->setEnabled(true);
     m_processButton->setEnabled(true);
-
-    const int total = m_model->rowCount();
-    qDebug() << "Batch of" << total << "took" << m_timer.elapsed() << "ms";
-
-    QMessageBox::information(this, "Finished",
-                             QString("%1 of %2 images processed.")
-                                 .arg(m_succeeded)
-                                 .arg(total));
 }
 
 void MainWindow::onProcessAll()
@@ -179,28 +197,19 @@ void MainWindow::onProcessAll()
     readSettings();
     m_progressBar->setRange(0, total);
     m_progressBar->setValue(0);
+    m_succeeded = 0;
 
-
-
+    // Each job carries its own copy of m_settings dont read window state
     QList<ProcessJob> jobList;
     for (int row = 0; row < total; ++row) {
         m_model->setStatus(row, JobStatus::Processing);
-
         const QString sourcePath = m_model->pathAt(row);
-
         const QFileInfo info(sourcePath);
-        const QString newName = QString("%1_watermarked_%2.%3")
-                                    .arg(info.completeBaseName())
-                                    .arg(row + 1)
-                                    .arg(info.suffix());
+        const QString newName = QString("%1_watermarked_%2.%3").arg(info.completeBaseName()).arg(row + 1).arg(info.suffix());
         const QString outputPath = QDir(m_outputFolder).filePath(newName);
-
         jobList.append(ProcessJob{sourcePath, m_settings, outputPath});
 
     }
-
-    m_succeeded = 0;
-    m_timer.start();
 
     m_addButton->setEnabled(false);
     m_removeButton->setEnabled(false);
@@ -230,9 +239,7 @@ void MainWindow::onSelectionChanged(const QModelIndex &current)
 
 void MainWindow::onAddImages()
 {
-    const QStringList paths = QFileDialog::getOpenFileNames(
-        this, "Select images", QString(),
-        "Images (*.png *.jpg *.jpeg *.bmp)");
+    const QStringList paths = QFileDialog::getOpenFileNames(this, "Select images", QString(),"Images (*.png *.jpg *.jpeg)");
 
     if (paths.isEmpty())
         return;
@@ -243,8 +250,7 @@ void MainWindow::onAddImages()
 
 void MainWindow::onBrowseFolder()
 {
-    const QString folder = QFileDialog::getExistingDirectory(
-        this, "Select output folder", QString());
+    const QString folder = QFileDialog::getExistingDirectory(this, "Select output folder", QString());
 
     if (folder.isEmpty())
         return;
@@ -263,8 +269,7 @@ void MainWindow::updatePreview()
 
     const QImage result = applyWatermark(m_previewSource, m_settings);
     const QPixmap pixmap = QPixmap::fromImage(result);
-    m_label->setPixmap(pixmap.scaled(800, 600, Qt::KeepAspectRatio,
-                                     Qt::SmoothTransformation));
+    m_label->setPixmap(pixmap.scaled(800, 600, Qt::KeepAspectRatio,Qt::SmoothTransformation));
 }
 
 void MainWindow::readSettings()

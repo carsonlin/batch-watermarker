@@ -98,7 +98,7 @@ Developed and tested on Windows with Qt 6.11.2 (MinGW 64-bit) in Qt Creator.
 **Command line:**
 
 ```
-cmake -S . -B build -DCMAKE_PREFIX_PATH=<path to your Qt kit, e.g. C:/Qt/6.11.2/mingw_64>
+cmase -S . -B build -DCMAKE_PREFIX_PATH=<path to your Qt kit, e.g. C:/Qt/6.11.2/mingw_64>
 cmake --build build
 ```
 

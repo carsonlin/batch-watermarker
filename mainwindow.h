@@ -14,7 +14,8 @@ class QLineEdit;
 class QPushButton;
 class QProgressBar;
 class QTableView;
-
+class QVBoxLayout;
+class QFormLayout;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -35,6 +36,11 @@ private:
     void onProcessAll();
     void onResultReady(int index);
     void onBatchFinished();
+    void setupTopRow(QVBoxLayout *outer);
+    void setupMiddleRow(QVBoxLayout *outer);
+    void setupSettingsPanel(QFormLayout *form);
+    void setupBottomRow(QVBoxLayout *outer);
+    void setupConnections();
 
     QLabel *m_label = nullptr;            // the preview
     QLineEdit *m_textEdit = nullptr;
